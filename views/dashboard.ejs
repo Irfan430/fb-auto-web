@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Facebook Auto Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/styles.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fab fa-facebook-f me-2"></i>
+                Facebook Auto Tool
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <%= user.username %>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/login.html">
+                                <i class="fas fa-cog me-2"></i>Manage Sessions
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="handleLogout()">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="mb-0 text-shadow">
+                        <i class="fas fa-tachometer-alt me-3"></i>
+                        Dashboard
+                    </h1>
+                    <p class="mb-0 opacity-75">Manage your Facebook automation campaigns</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container my-4">
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-widget">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-1">Active Sessions</h6>
+                            <h3 class="mb-0" id="activeSessions"><%= stats.activeSessions || 0 %></h3>
+                        </div>
+                        <div class="text-primary">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-widget success">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-1">Actions (7 days)</h6>
+                            <h3 class="mb-0" id="totalActions"><%= stats.totalActionsLast7Days || 0 %></h3>
+                        </div>
+                        <div class="text-success">
+                            <i class="fas fa-rocket fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-widget info">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-1">Success Rate</h6>
+                            <h3 class="mb-0" id="successRate"><%= stats.successRate || '0%' %></h3>
+                        </div>
+                        <div class="text-info">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stat-widget warning">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-1">Pending Actions</h6>
+                            <h3 class="mb-0" id="pendingActions"><%= stats.pendingActions || 0 %></h3>
+                        </div>
+                        <div class="text-warning">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Execution Form -->
+        <div class="action-form">
+            <h4 class="mb-4">
+                <i class="fas fa-play-circle me-2"></i>
+                Execute Facebook Action
+            </h4>
+            
+            <form id="actionForm" class="needs-validation" novalidate>
+                <div class="row">
+                    <div class="col-lg-8">
+                        <!-- Target URL -->
+                        <div class="mb-3">
+                            <label for="targetUrl" class="form-label">
+                                <i class="fas fa-link me-2"></i>
+                                Target Facebook URL
+                            </label>
+                            <input type="url" class="form-control" id="targetUrl" name="targetUrl" 
+                                   placeholder="https://facebook.com/username/posts/123456789" required>
+                            <div class="invalid-feedback">
+                                Please provide a valid Facebook URL.
+                            </div>
+                            <div id="urlValidation"></div>
+                        </div>
+
+                        <!-- Target UID (Optional) -->
+                        <div class="mb-3">
+                            <label for="targetUid" class="form-label">
+                                <i class="fas fa-id-badge me-2"></i>
+                                Target UID <small class="text-muted">(Optional)</small>
+                            </label>
+                            <input type="text" class="form-control" id="targetUid" name="targetUid" 
+                                   placeholder="100012345678901">
+                            <div class="form-text">
+                                Leave empty to auto-extract from URL
+                            </div>
+                        </div>
+
+                        <!-- Action Type Selection -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-mouse-pointer me-2"></i>
+                                Select Action Type
+                            </label>
+                            <div class="action-grid">
+                                <div class="action-option" onclick="selectAction('like')">
+                                    <input type="radio" name="actionType" value="like" id="action-like" hidden>
+                                    <div class="action-icon">
+                                        <i class="fas fa-thumbs-up"></i>
+                                    </div>
+                                    <div class="action-label">Like</div>
+                                </div>
+                                <div class="action-option" onclick="selectAction('love')">
+                                    <input type="radio" name="actionType" value="love" id="action-love" hidden>
+                                    <div class="action-icon">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <div class="action-label">Love</div>
+                                </div>
+                                <div class="action-option" onclick="selectAction('haha')">
+                                    <input type="radio" name="actionType" value="haha" id="action-haha" hidden>
+                                    <div class="action-icon">
+                                        <i class="fas fa-laugh"></i>
+                                    </div>
+                                    <div class="action-label">Haha</div>
+                                </div>
+                                <div class="action-option" onclick="selectAction('wow')">
+                                    <input type="radio" name="actionType" value="wow" id="action-wow" hidden>
+                                    <div class="action-icon">
+                                        <i class="fas fa-surprise"></i>
+                                    </div>
+                                    <div class="action-label">Wow</div>
+                                </div>
+                                <div class="action-option" onclick="selectAction('sad')">
+                                    <input type="radio" name="actionType" value="sad" id="action-sad" hidden>
+                                    <div class="action-icon">
+                                        <i class="fas fa-sad-tear"></i>
+                                    </div>
+                                    <div class="action-label">Sad</div>
+                                </div>
+                                <div class="action-option" onclick="selectAction('angry')">
+                                    <input type="radio" name="actionType" value="angry" id="action-angry" hidden>
+                                    <div class="action-icon">
+                                        <i class="fas fa-angry"></i>
+                                    </div>
+                                    <div class="action-label">Angry</div>
+                                </div>
+                                <div class="action-option" onclick="selectAction('follow')">
+                                    <input type="radio" name="actionType" value="follow" id="action-follow" hidden>
+                                    <div class="action-icon">
+                                        <i class="fas fa-user-plus"></i>
+                                    </div>
+                                    <div class="action-label">Follow</div>
+                                </div>
+                                <div class="action-option" onclick="selectAction('comment')">
+                                    <input type="radio" name="actionType" value="comment" id="action-comment" hidden>
+                                    <div class="action-icon">
+                                        <i class="fas fa-comment"></i>
+                                    </div>
+                                    <div class="action-label">Comment</div>
+                                </div>
+                            </div>
+                            <div class="invalid-feedback">
+                                Please select an action type.
+                            </div>
+                        </div>
+
+                        <!-- Comment Text (Hidden by default) -->
+                        <div id="commentSection" class="mb-3 d-none">
+                            <label for="commentText" class="form-label">
+                                <i class="fas fa-edit me-2"></i>
+                                Comment Text
+                            </label>
+                            <textarea class="form-control" id="commentText" name="commentText" rows="3" 
+                                      placeholder="Enter your comment here..."></textarea>
+                            <div class="invalid-feedback">
+                                Comment text is required for comment action.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <!-- Session Selection -->
+                        <div class="mb-3">
+                            <label for="sessionSelect" class="form-label">
+                                <i class="fas fa-users me-2"></i>
+                                Sessions to Use
+                            </label>
+                            <select class="form-control" id="sessionSelect" name="sessionId">
+                                <option value="">All Active Sessions</option>
+                                <% if (sessions && sessions.length > 0) { %>
+                                    <% sessions.forEach(session => { %>
+                                        <option value="<%= session.id %>">
+                                            <%= session.fbUserId %> (<%= session.isActive ? 'Active' : 'Inactive' %>)
+                                        </option>
+                                    <% }) %>
+                                <% } %>
+                            </select>
+                            <div class="form-text">
+                                Leave as "All Active Sessions" to use all available sessions
+                            </div>
+                        </div>
+
+                        <!-- Action Summary -->
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Action Summary
+                                </h6>
+                                <ul class="list-unstyled mb-0">
+                                    <li><strong>Active Sessions:</strong> <%= sessions ? sessions.length : 0 %></li>
+                                    <li><strong>Success Rate:</strong> <%= stats.successRate || '0%' %></li>
+                                    <li><strong>Estimated Time:</strong> ~30 seconds</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Execute Button -->
+                        <div class="d-grid mt-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <span class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                                <i class="fas fa-rocket me-2"></i>
+                                Execute Action
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Recent Actions and Sessions -->
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Recent Actions -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>
+                            Recent Actions
+                        </h5>
+                        <button class="btn btn-light btn-sm" onclick="loadDashboardData()">
+                            <i class="fas fa-sync-alt me-1"></i>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="history-table">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Action</th>
+                                        <th>Target</th>
+                                        <th>Status</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="actionsTableBody">
+                                    <% if (recentActions && recentActions.length > 0) { %>
+                                        <% recentActions.forEach(action => { %>
+                                            <tr>
+                                                <td>
+                                                    <i class="fas fa-<%= getActionIcon(action.actionType) %> me-2"></i>
+                                                    <%= action.actionType.charAt(0).toUpperCase() + action.actionType.slice(1) %>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">
+                                                        <%= action.targetUrl.length > 40 ? action.targetUrl.substring(0, 40) + '...' : action.targetUrl %>
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <span class="status-badge <%= action.status %>">
+                                                        <%= action.status %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">
+                                                        <%= action.timeAgo %>
+                                                    </small>
+                                                </td>
+                                            </tr>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-4">
+                                                <i class="fas fa-history fa-2x mb-2 d-block"></i>
+                                                No recent actions found
+                                            </td>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Active Sessions -->
+                <div class="card">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users me-2"></i>
+                            Active Sessions
+                        </h5>
+                        <a href="/login.html" class="btn btn-light btn-sm">
+                            <i class="fas fa-plus me-1"></i>
+                            Add
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <% if (sessions && sessions.length > 0) { %>
+                            <% sessions.forEach(session => { %>
+                                <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                                    <div class="me-3">
+                                        <i class="fab fa-facebook-f fa-2x text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1"><%= session.fbUserId %></h6>
+                                        <small class="text-muted">
+                                            Last used: <%= session.timeUntilExpiry %>
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-<%= session.isActive ? 'success' : 'danger' %>">
+                                            <%= session.isActive ? 'Active' : 'Inactive' %>
+                                        </span>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-users-slash fa-2x mb-2 d-block"></i>
+                                <p class="mb-0">No active sessions</p>
+                                <a href="/login.html" class="btn btn-outline-primary btn-sm mt-2">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Add Facebook Account
+                                </a>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card mt-3">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-bolt me-2"></i>
+                            Quick Actions
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="cancelPendingActions()">
+                                <i class="fas fa-stop me-2"></i>
+                                Cancel Pending Actions
+                            </button>
+                            <button class="btn btn-outline-success btn-sm" onclick="cleanupSessions()">
+                                <i class="fas fa-broom me-2"></i>
+                                Cleanup Sessions
+                            </button>
+                            <a href="/action/history" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-list me-2"></i>
+                                View Full History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">© 2024 Facebook Auto Tool. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small class="text-muted">
+                        Last updated: <%= moment().format('MMMM Do YYYY, h:mm:ss a') %>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/script.js"></script>
+    
+    <script>
+        // Dashboard specific functions
+        function selectAction(actionType) {
+            // Remove previous selections
+            document.querySelectorAll('.action-option').forEach(opt => opt.classList.remove('selected'));
+            
+            // Select current option
+            const option = event.currentTarget || document.querySelector(`[onclick*="${actionType}"]`);
+            option.classList.add('selected');
+            
+            // Check the radio button
+            const radio = document.getElementById(`action-${actionType}`);
+            if (radio) radio.checked = true;
+            
+            // Show/hide comment section
+            const commentSection = document.getElementById('commentSection');
+            if (commentSection) {
+                if (actionType === 'comment') {
+                    commentSection.classList.remove('d-none');
+                    commentSection.querySelector('textarea').required = true;
+                } else {
+                    commentSection.classList.add('d-none');
+                    commentSection.querySelector('textarea').required = false;
+                }
+            }
+        }
+
+        async function cancelPendingActions() {
+            if (!confirm('Are you sure you want to cancel all pending actions?')) return;
+            
+            try {
+                const response = await API.post('/action/cancel-pending');
+                showAlert(response.message, 'success');
+                loadDashboardData();
+            } catch (error) {
+                showAlert('Failed to cancel actions: ' + error.message, 'danger');
+            }
+        }
+
+        async function cleanupSessions() {
+            if (!confirm('This will remove expired sessions and old action history. Continue?')) return;
+            
+            try {
+                const response = await API.post('/dashboard/cleanup');
+                showAlert(response.message, 'success');
+                loadDashboardData();
+            } catch (error) {
+                showAlert('Cleanup failed: ' + error.message, 'danger');
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await API.post('/auth/logout');
+                window.location.href = '/';
+            } catch (error) {
+                showAlert('Logout failed: ' + error.message, 'danger');
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load fresh data
+            loadDashboardData();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadDashboardData, 30000);
+            
+            // Initialize form validation
+            const actionForm = document.getElementById('actionForm');
+            if (actionForm) {
+                actionForm.addEventListener('submit', handleActionSubmit);
+            }
+        });
+    </script>
+
+    <%
+    // Helper function for action icons
+    function getActionIcon(actionType) {
+        const icons = {
+            like: 'thumbs-up',
+            love: 'heart',
+            haha: 'laugh',
+            wow: 'surprise',
+            sad: 'sad-tear',
+            angry: 'angry',
+            follow: 'user-plus',
+            comment: 'comment'
+        };
+        return icons[actionType] || 'circle';
+    }
+    %>
+</body>
+</html>
